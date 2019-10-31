@@ -8,6 +8,12 @@
 #include <iostream>
 #include <array>
 #include <string>
+#include <cassert>
+#include <cstdlib>
+#include <cstdio>
+#include <cmath>
+#include <vector>
+#include <tuple>
 
 
 
@@ -22,36 +28,6 @@
 #define A7 21
 
 
-
-
-
-
-
-
-
-
-
-namespace myArd
-{
-
-
-extern const unsigned char digitalPinsRangeLow;
-extern const unsigned char digitalPinsRangeHigh;
-extern const unsigned char analogPinsRangeLow;
-extern const unsigned char analogPinsRangeHigh;
-
-extern const size_t controlablePinNumber;
-
-extern const float maximumPinTotalDrownCurrent;
-extern const float maximumPinIndividualDrownCurrent;
-
-
-
-enum arduinoState
-{
-    dead,
-    working
-};
 
 
 enum pinModes
@@ -69,30 +45,109 @@ enum pinDigitalValue
 };
 
 
+
+
+
+
+
+namespace myArd
+{
+
+
+extern const unsigned char digitalPinsRangeLow;
+extern const unsigned char digitalPinsRangeHigh;
+extern const unsigned char analogPinsRangeLow;
+extern const unsigned char analogPinsRangeHigh;
+
+#define controlablePinNumber 22//extern const size_t controlablePinNumber;
+
+extern const float maximumPinTotalDrownCurrent;
+extern const float maximumPinIndividualDrownCurrent;
+extern const float internalPullupImpedence;
+extern const float internalInputModeImpedence;
+extern const float internalOutputModeImpedence;
+
+#define eepromSize 512//extern const size_t eepromSize;
+
+extern const float randomFactor;
+extern const float INPUT_PULLUP_VOLTAGE;
+
+extern const float stateImpedences[4];
+
+
+
+///ORDER OF THE VECTOR IS IMPORTANT, AND CHANGES THE SECOND MEMBER OF THE RETURNED PAIR
+inline std::pair <float/*voltage*/, float/*current through first pin, index 0 of the vector (order is important=*/>
+    calculerResultat(std::vector <std::pair<float/*voltage*/, float/*impedance*/>>protagonistes)
+{
+    std::pair <float, float> ret(0, 0);
+    std::vector <float> transmittances;
+    for(auto a : protagonistes)
+        transmittances.push_back(1.0/a.second);
+    float totalTransmittance = 0;
+    for(unsigned int i = 0; i < transmittances.size(); ++i)
+        totalTransmittance += transmittances[i]
+        , ret.first += transmittances[i]*protagonistes[i].first;
+    ret.first /= totalTransmittance;
+    ret.second = std::abs(protagonistes[0].first - ret.first) * transmittances[0];
+    return ret;
+}
+
+
+
+
+enum arduinoState
+{
+    dead,
+    working
+};
+
+
+
+
+class eepromClass
+{
+public:
+    static eepromClass eepromStaticMember;
+    template <typename T>
+        inline T& put(int adress, T &v);
+    template <typename T>
+        inline T& get(int adress, T& v);
+    eepromClass() = default;
+};
+
+extern eepromClass &EEPROM;
+
+
 class arduino
 {
 public:
 
+    arduino();///
+
     //fonction pour récupérer (et non afficher) des infos sur l'arduino
-    arduinoState getState();
-    std::array <char, 512> getEeprom();
+    arduinoState getState();///
+    std::array <char, 512> getWholeEeprom();///
 
     //fonction d'affichage
-    arduino &operator<<(std::string s);
-    void printSentenceAndActualize(std::string s);
-    void clearAndActualize();
-    void actualize();
+    arduino &operator<<(std::string s);///
+    void printSentenceAndActualize(std::string s);///
+    void clearAndActualize();///
+    void actualize();///
+    ///ICI penser à rajouter un effet pour que le courant maximal (et le voltage) soit toujours dans le pire cas.
 
     //fonction de "simulation" d'environnement et d'états interne de l'arduino
-    void changePluggedOutput(float voltage, float impedance);
-    void setEeprom(std::array <char, 512> input);
+    void changePluggedOutput(unsigned char pin, float voltage, float impedance);///
+    void setWholeEeprom(std::array <char, 512> input);///
 
 
-    //fonctiond de changement d'état interne
-    void pinMode(unsigned char pin, pinModes m);
-    void digitalWrite(unsigned char pin, pinDigitalValue v);
-    void digitalRead(unsigned char pin);
-    int analogRead(unsigned char pin);
+    //fonctions de changement d'état interne
+    void pinMode(unsigned char pin, pinModes m);///
+    void digitalWrite(unsigned char pin, pinDigitalValue v);///
+    pinDigitalValue digitalRead(unsigned char pin);///
+    int analogRead(unsigned char pin);///
+    void putEeprom(char *outputData, size_t index, size_t size);///
+    void getEeprom(char *inputData, size_t index, size_t size);///
 
 
 
@@ -101,28 +156,50 @@ public:
 
 private:
 
-    std::array <char, controlablePinNumber> state;//1 = OUTPUT, 2 = INPUT, 4 = INPUT_PULLUP
-    std::array <float, controlablePinNumber> worstDrownCurrent;
+    std::array <float, controlablePinNumber> pinWorstDrownCurrent;
     std::array<float, controlablePinNumber> pinVoltage;//if set as output, voltage doesnt changes as impedence is considered null
         // , except when digital write is called
-    std::string currentlyPrinted;
 
+    std::array <char, eepromSize> eeprom;///
 
+    std::array <pinModes, controlablePinNumber> pinState;//1 = OUTPUT, 2 = INPUT, 4 = INPUT_PULLUP
+    std::array<std::pair <float/*voltage*/, float/*impedance*/>, controlablePinNumber> pinExternalPlugged;
+    std::array <float, controlablePinNumber> pinInternalPlugged;
 
+    std::string currentlyPrinted;///
+    arduinoState state;///
 
-    bool checkedSumCurrent();//valid if = true, dead else
-    bool checkVoltage();//valid if = true, dead else
 };
+
+
+
 
 
 
 }
 
 
-void pinMode(unsigned char pin, pinModes m);
-void digitalWrite(unsigned char pin, pinDigitalValue v);
-void digitalRead(unsigned char pin);
-int analogRead(unsigned char pin);
+
+inline void pinMode(unsigned char pin, pinModes m)
+{
+    myArd::arduino::defArd.pinMode(pin, m);
+}
+
+inline void digitalWrite(unsigned char pin, pinDigitalValue v)
+{
+    return myArd::arduino::defArd.digitalWrite(pin, v);
+}
+
+inline pinDigitalValue digitalRead(unsigned char pin)
+{
+    return myArd::arduino::defArd.digitalRead(pin);
+}
+
+inline int analogRead(unsigned char pin)
+{
+    return myArd::arduino::defArd.analogRead(pin);
+}
+
 
 
 #endif // ARDUINO_H
