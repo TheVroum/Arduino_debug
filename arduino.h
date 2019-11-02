@@ -8,12 +8,17 @@
 #include <iostream>
 #include <array>
 #include <string>
+#include <cstring>
+#include <vector>
+#include <tuple>
+#include <chrono>
+#include <thread>
+
+#include <ctime>
 #include <cassert>
 #include <cstdlib>
 #include <cstdio>
 #include <cmath>
-#include <vector>
-#include <tuple>
 
 
 
@@ -105,20 +110,6 @@ enum arduinoState
 
 
 
-class eepromClass
-{
-public:
-    static eepromClass eepromStaticMember;
-    template <typename T>
-        inline T& put(int adress, T &v);
-    template <typename T>
-        inline T& get(int adress, T& v);
-    eepromClass() = default;
-};
-
-extern eepromClass &EEPROM;
-
-
 class arduino
 {
 public:
@@ -174,9 +165,34 @@ private:
 
 
 
+class eepromClass
+{
+public:
+    static eepromClass eepromStaticMember;
+    template <typename T>
+        inline T& put(int adress, T &v)
+        {
+            arduino::defArd.getEeprom(reinterpret_cast<char*>(&v), adress, sizeof(v));
+            return v;
+        }
+    template <typename T>
+        inline T& get(int adress, T& v)
+        {
+            arduino::defArd.getEeprom(reinterpret_cast<char*>(&v), adress, sizeof(v));
+            return v;
+        }
+    eepromClass() = default;
+};
+
+
+
 
 
 }
+
+
+
+extern myArd::eepromClass &EEPROM;
 
 
 
@@ -199,6 +215,13 @@ inline int analogRead(unsigned char pin)
 {
     return myArd::arduino::defArd.analogRead(pin);
 }
+
+
+
+void delay(unsigned long ms);
+
+unsigned long millis();
+
 
 
 

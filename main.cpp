@@ -15,10 +15,9 @@ using namespace std;
 namespace myArd
 {
 
-myArd::arduino defArd;
+myArd::arduino myArd::arduino::defArd;
 myArd::eepromClass myArd::eepromClass::eepromStaticMember;
 
-myArd::eepromClass &EEPROM = myArd::eepromClass::eepromStaticMember;
 
 const unsigned char digitalPinsRangeLow = 0;
 const unsigned char digitalPinsRangeHigh = 13;
@@ -148,6 +147,19 @@ void myArd::arduino::getEeprom(char *inputData, size_t index, size_t size)
 
 }
 
+
+
+
+
+
+
+myArd::eepromClass &EEPROM = myArd::eepromClass::eepromStaticMember;
+
+
+
+
+
+
 myArd::arduino::arduino()
 {
     state = working;
@@ -220,8 +232,34 @@ void myArd::arduino::actualize()
 
 
 
+void delay(unsigned long ms)
+{
+    std::this_thread::sleep_for(
+        std::chrono::milliseconds(ms));
+}
+
+
+
+
+unsigned long millis()
+{
+    static clock_t start = (clock() * 1000000) / CLOCKS_PER_SEC;
+    clock_t now = (clock() * 1000000) / CLOCKS_PER_SEC;
+    return now - start;
+}
+
+
+
+
+
+
+
 void loop();
 void setup();
+
+
+
+
 
 ///ATTENTION : en cas de destruction, les voltages aux bornes de l'arduino ne sont plus actualisés.
 /// Le programme pourra éventuellement appeler exit();.
