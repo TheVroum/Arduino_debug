@@ -27,9 +27,8 @@ However it is not during the pause triggered by the debugger or the breakpoints.
 
 
 #### To do list (for the author or any brave contributer. I wish you good luck if you try to read this)
--add pause and unpause before and after every call to breakAndAlter (en prenant garde à ne pas l'appeler deux fois de suite)
+- add pause and unpause before and after every call to breakAndAlter (en prenant garde à ne pas l'appeler deux fois de suite)
 - Detail the readme and add a example of alteration function with modification of the breaking behavior
 - add a boolean that allows swithcing from "worst" mode to "random" mode for the noise direction.
 - Extracting constants 
 - changing callbackInterval to a modifiable so its modification is possible at compilation and run-time.
-- In the function breakAndAlter, 
