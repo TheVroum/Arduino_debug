@@ -8,4 +8,5 @@ SOURCES += \
 
 HEADERS += \
     arduino.h \
-    ARDUINO.h
+    ARDUINO.h \
+    settings.h

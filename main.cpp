@@ -5,7 +5,7 @@
 // qui ferait office de pseudo breakpoint interne
 // permettant de modifier l'arduino
 
-// Comme la plupart des instrucitons ne sont pas comoposées et simplement déplacées sur d'autres architecture
+// Comme la plupart des instructions ne sont pas comoposées et simplement déplacées sur d'autres architecture
 // les deux seuls moyens de modifier l'arduino pendant l'exécution du code arduino porté sous windows
 // , de manière contrôlées sont de modifier après un temps donné, et de breaker avec la méthode mentionnée ci dessus
 // les calls à l'api arduino. Ce que nous feront aussi puisque c'est bien moins aléatoire, bien que limité.

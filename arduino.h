@@ -49,7 +49,10 @@
 
 
 
-enum pinModes
+enum
+#ifndef TWO_INCLUDE_DIRECT_COMPILATION_MODE
+        pinModes
+#endif
 {
     OUTPUT = 1,
     INPUT = 2,
@@ -57,7 +60,10 @@ enum pinModes
 };
 
 
-enum pinDigitalValue
+enum
+#ifndef TWO_INCLUDE_DIRECT_COMPILATION_MODE
+        pinDigitalValue
+#endif
 {
     LOW = 0,
     HIGH
